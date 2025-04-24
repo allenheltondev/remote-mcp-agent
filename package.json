@@ -1,0 +1,24 @@
+{
+  "name": "inline-agents",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@aws-sdk/client-bedrock-agent-runtime": "^3.787.0",
+    "@aws-sdk/client-dynamodb": "^3.788.0",
+    "@aws-sdk/util-dynamodb": "^3.788.0"
+  },
+  "dependencies": {
+    "@gomomento/sdk": "^1.111.0",
+    "@langchain/langgraph": "^0.2.65",
+    "@langchain/mcp-adapters": "^0.4.2",
+    "@langchain/openai": "^0.5.6",
+    "middy-mcp": "^0.1.1",
+    "zod": "^3.24.3"
+  }
+}
