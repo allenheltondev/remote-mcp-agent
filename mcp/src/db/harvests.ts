@@ -10,7 +10,7 @@ type Harvest = {
   notes: string | null;
 };
 
-export async function logHarvest(bedId: string, harvest: any): Promise<Harvest> {
+export async function addHarvest(bedId: string, harvest: any): Promise<Harvest> {
   const sql = getDbClient();
   const id = uuidv4();
   await sql`INSERT INTO harvests (id, bed_id, harvest_date, crop, quantity, notes)

@@ -15,7 +15,7 @@ type GardenBed = {
   plants?: Plant[];
 };
 
-export async function insertGardenBed(params: any): Promise<GardenBed> {
+export async function addGardenBed(params: any): Promise<GardenBed> {
   const id = uuidv4();
   const sql = getDbClient();
   await sql`INSERT INTO garden_beds (id, name, shape, size_sqft, location, soil_type, sunlight)

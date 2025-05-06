@@ -1,9 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { insertGardenBed, getGardenBedByName, listGardenBeds, updateGardenBed } from "./db/gardenBeds";
-import { getAllObservations, getObservationsByBedId, logObservation } from "./db/observations";
-import { insertPlants, removePlants } from "./db/plants";
-import { getAllHarvests, getHarvestsByBedId, logHarvest } from "./db/harvests";
+import { addGardenBed, getGardenBedByName, listGardenBeds, updateGardenBed } from "./db/gardenBeds";
+import { getAllObservations, getObservationsByBedId, addObservation } from "./db/observations";
+import { addPlants, removePlants } from "./db/plants";
+import { getAllHarvests, getHarvestsByBedId, addHarvest } from "./db/harvests";
+import { addSeeds, removeSeeds, listSeeds, useSeeds, getSeedDetail, Seed } from "./db/seeds";
 
 export function registerTools(server: McpServer) {
   server.tool("add-bed", "Adds a new garden bed to the system. Garden bed metadata only.",
@@ -16,7 +17,7 @@ export function registerTools(server: McpServer) {
       sunlight: z.string().describe("Sunlight availability").optional()
     },
     async (input) => {
-      await insertGardenBed(input);
+      await addGardenBed(input);
 
       return { content: [{ type: "text", text: `Added bed ${input.name}` }] };
     }
@@ -66,7 +67,7 @@ export function registerTools(server: McpServer) {
       health: z.string().describe("Overall plant health").optional()
     },
     async (input) => {
-      await logObservation(input.name, input);
+      await addObservation(input.name, input);
       return { content: [{ type: "text", text: `Logged observation for ${input.name}` }] };
     }
   );
@@ -82,7 +83,7 @@ export function registerTools(server: McpServer) {
       }))
     },
     async (input) => {
-      await insertPlants(input.bedId, input.plants);
+      await addPlants(input.bedId, input.plants);
       return { content: [{ type: "text", text: `Added ${input.plants.length} plant(s) to garden bed '${input.bedId}'` }] };
     }
   );
@@ -106,7 +107,7 @@ export function registerTools(server: McpServer) {
       notes: z.string().describe("Additional notes about the harvest").optional()
     },
     async (input) => {
-      await logHarvest(input.bedId, input);
+      await addHarvest(input.bedId, input);
       return { content: [{ type: "text", text: `Logged harvest for garden bed '${input.bedId}'` }] };
     }
   );
@@ -144,6 +145,91 @@ export function registerTools(server: McpServer) {
     async (input) => {
       const observations = await getObservationsByBedId(input.bedId);
       return { content: [{ type: "text", text: JSON.stringify(observations) }] };
+    }
+  );
+
+  server.tool("add-seeds", "Adds seeds to the system inventory.",
+    {
+      seeds: z.array(
+        z.object({
+          name: z.string().describe("Name of the seed"),
+          variety: z.string().describe("Variety of the seed").optional(),
+          species: z.string().describe("Species of the seed").optional(),
+          source: z.string().describe("Source where the seed was obtained").optional(),
+          purchase_date: z.string().describe("Date the seed was purchased (ISO 8601)").optional(),
+          quantity: z.number().describe("Amount of seeds or seed packets").optional(),
+
+          days_to_germinate: z.number().describe("Days required for the seed to germinate").optional(),
+          days_to_maturity: z.number().describe("Days required to reach maturity").optional(),
+          planting_depth_inches: z.number().describe("Recommended planting depth in inches").optional(),
+          spacing_inches: z.number().describe("Recommended spacing between plants in inches").optional(),
+          sun_requirements: z.string().describe("Sunlight needs like 'full sun' or 'partial shade'").optional(),
+          hardiness_zone_range: z.string().describe("USDA hardiness zone range, like '5-9'").optional(),
+
+          notes: z.string().describe("User notes about the seed").optional(),
+          tags: z.array(z.string()).describe("Tags for filtering or categorization").optional(),
+
+          preferred_soil_ph: z.string().describe("Preferred soil pH range").optional(),
+          fertilization_needs: z.string().describe("Fertilizer or soil nutrition requirements").optional(),
+          companion_plants: z.array(z.string()).describe("Plants that grow well with this seed").optional(),
+          avoid_near: z.array(z.string()).describe("Plants that should not be grown near this seed").optional()
+        })
+      )
+    },
+    async (input) => {
+      await addSeeds(input.seeds as Seed[]);
+      return { content: [{ type: "text", text: `Added ${input.seeds.length} seed(s)` }] };
+    }
+  );
+
+  server.tool("remove-seeds", "Removes seeds from the system inventory.",
+    {
+      seeds: z.array(z.string().describe("Name of the seed to remove"))
+    },
+    async (input) => {
+      await removeSeeds(input.seeds);
+      return { content: [{ type: "text", text: `Removed ${input.seeds.length} seed(s) from catalog` }] };
+    }
+  );
+
+  server.tool("use-seeds", "Removes quantity from seed catalog",
+    {
+      seedName: z.string().describe("Name of the seed to use"),
+      amount: z.number().describe("Amount of seed to use")
+    },
+    async (input) => {
+      const remaining = await useSeeds(input.seedName, input.amount);
+      return { content: [{ type: "text", text: `Remaining quantity of ${input.seedName}: ${remaining}` }] };
+    }
+  );
+
+  server.tool("list-seeds", "Lists all seeds in the system inventory.",
+    {
+      includeEmpty: z.boolean().describe("Include seeds with zero quantity in the list").optional()
+    },
+    async (input) => {
+      const seeds = await listSeeds(input.includeEmpty ?? false);
+      const catalog = seeds.map(seed => {
+        const parts = [
+          `${seed.name}`,
+          seed.variety ? `(${seed.variety})` : null,
+          seed.species ? `– ${seed.species}` : null,
+          seed.quantity != null ? `– ${seed.quantity} seed(s)` : null
+        ].filter(Boolean);
+
+        return parts.join(" ");
+      })
+      .join("\n");
+      return { content: [{ type: "text", text: catalog }] };
+    }
+  );
+
+  server.tool("get-seed-detail", "Gets all details about a specific seed", {
+    seedName: z.string().describe("Name of the seed")
+  },
+    async (input) => {
+      const seed = await getSeedDetail(input.seedName);
+      return { content: [{ type: "text", text: JSON.stringify(seed) }] };
     }
   );
 }

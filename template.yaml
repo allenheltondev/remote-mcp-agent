@@ -7,6 +7,9 @@ Parameters:
   OpenAIKey:
     Type: String
     NoEcho: true
+  ConnectionString:
+    Type: String
+    NoEcho: true
 
 Metadata:
   esbuild-properties: &esbuild-properties
@@ -161,7 +164,28 @@ Resources:
             Path: /servers
             Method: GET
 
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild-properties
+        EntryPoints:
+          - api.mjs
+    Properties:
+      Handler: api.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      FunctionUrlConfig:
+        AuthType: NONE
+      Environment:
+        Variables:
+          CONNECTION_STRING: !Ref ConnectionString
+
 Outputs:
   HttpApiUrl:
     Description: The HTTP API endpoint for testing the agent
     Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/agent'
+  ApiUrl:
+    Description: The API endpoint for the garden API
+    Value: !GetAtt ApiFunctionUrl.FunctionUrl

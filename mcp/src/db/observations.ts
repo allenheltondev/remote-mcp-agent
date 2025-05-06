@@ -11,7 +11,7 @@ type Observation = {
   health: string | null;
 };
 
-export async function logObservation(bedId: string, observation: any): Promise<Observation> {
+export async function addObservation(bedId: string, observation: any): Promise<Observation> {
   const sql = getDbClient();
   const id = uuidv4();
   await sql`INSERT INTO observations (id, bed_id, note, moisture, pests, health)

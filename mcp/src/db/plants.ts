@@ -10,7 +10,7 @@ export type Plant = {
   notes: string | null;
 };
 
-export async function insertPlants(bedId: string, plants: any[]): Promise<void> {
+export async function addPlants(bedId: string, plants: any[]): Promise<void> {
   const sql = getDbClient();
   const queries = plants.map(p => sql`INSERT INTO plants (id, bed_id, name, species, planting_date, notes)
      VALUES (${uuidv4()}, ${bedId}, ${p.name}, ${p.species}, ${p.planting_date}, ${p.notes})`);
