@@ -256,6 +256,7 @@ const getHtml = (servers) => {
 
     #chat-form {
       display: flex;
+      align-items: center;
       gap: 0.5rem;
     }
 
@@ -265,7 +266,46 @@ const getHtml = (servers) => {
       font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #ccc;
+      margin: 0;
     }
+
+    .typing-dots {
+      display: none;
+      height: 24px;
+      align-items: center;
+      justify-content: center;
+      margin-left: 0.5rem;
+    }
+
+    .typing-dots span {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin: 0 2px;
+      background-color: var(--primary);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dots span:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+    .typing-dots span:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -288,7 +328,10 @@ const getHtml = (servers) => {
       <div id="chat-log" class="chat-log"></div>
       <form id="chat-form" onsubmit="sendMessage(event)">
         <input type="text" id="chat-input" placeholder="Ask the agent..." required />
-        <button type="submit" class="primary">Send</button>
+        <button id="send-button" type="submit" class="primary">Send</button>
+        <div id="typing-dots" class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
       </form>
     </div>
   </div>
@@ -411,6 +454,11 @@ const getHtml = (servers) => {
       const message = input.value.trim();
       if (!message) return;
 
+      const sendBtn = document.getElementById('send-button');
+      const dots = document.getElementById('typing-dots');
+      sendBtn.style.display = 'none';
+      dots.style.display = 'flex';
+
       const userEntry = document.createElement('div');
       userEntry.textContent = "You: " + message;
       log.appendChild(userEntry);
@@ -438,8 +486,13 @@ const getHtml = (servers) => {
       .catch(err => {
         console.error(err);
         showToast("Failed to contact agent.");
+      })
+      .finally(() => {
+        sendBtn.style.display = 'inline-block';
+        dots.style.display = 'none';
       });
     }
+
 
     const servers = ${JSON.stringify(servers)};
     servers.forEach(({ sk, url, headers = [] }) => {

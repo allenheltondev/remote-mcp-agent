@@ -1,0 +1,489 @@
+openapi: 3.0.0
+info:
+  title: Garden Buddy API
+  description: API for managing everything in your garden
+  version: 1.0.0
+
+servers:
+  - url: https://uz253hut66kfr7gi3tloq4udki0ttybl.lambda-url.us-east-1.on.aws/
+    description: Development server
+
+components:
+  schemas:
+    GardenBed:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Display name
+        shape:
+          type: string
+          description: Description of the shape of the bed
+        sizeSqft:
+          type: string
+          description: Square footage of the plantable area
+        location:
+          type: string
+          description: Approximate location of the bed in the garden
+        soilType:
+          type: string
+          description: Description of the type of soil
+        sunlight:
+          type: string
+          description: The amount of sunlight the bed receives in a day
+
+    Harvest:
+      type: object
+      required:
+        - harvestDate
+      properties:
+        harvestDate:
+          type: string
+          format: date
+          description: Date of the harvest
+        crop:
+          type: string
+          description: Name of the plant that was harvested
+        quantity:
+          type: number
+          description: Amount of the plant that was harvested
+        notes:
+          type: string
+          description: Any additional detail
+
+    Observation:
+      type: object
+      required:
+        - observationDate
+      properties:
+        observationDate:
+          type: string
+          format: date
+          description: Date of the observation
+        note:
+          type: string
+          description: Details of the observation
+        moisture:
+          type: string
+          description: Observed moisture level of the soil
+        pests:
+          type: string
+          description: Any pests identified on or near the bed
+        health:
+          type: string
+          description: Plant health
+
+    Plant:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the plant
+        species:
+          type: string
+          description: Species of the plant
+        plantingDate:
+          type: string
+          description: Date of planting
+        notes:
+          type: string
+          description: additional notes about the plant
+
+    SystemAddedFields:
+      type: object
+      required:
+        - id
+        - createdDate
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        createdDate:
+          type: string
+          format: datetime
+          description: Date and time entity was created
+        updatedDate:
+          type: string
+          format: datetime
+          description: Date and time entity was updated
+
+  parameters:
+    BedId:
+      name: bedId
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    Created:
+      description: Created entity
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+                description: Unique identifier for an entity
+
+    NoContent:
+      description: Successfully completed
+
+    NotFound:
+      description: Entity was not found
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+
+    InvalidRequest:
+      description: The request was invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+
+    InternalServerError:
+      description: Something went wrong on the server
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: Something went wrong
+
+
+paths:
+  /beds:
+    get:
+      description: Lists all garden bed names and identifiers
+      operationId: list-beds
+      tags:
+        - Garden Beds
+      responses:
+        '200':
+          description: List of garden beds was returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - beds
+                properties:
+                  beds:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - name
+                      properties:
+                        id:
+                          type: string
+                          description: Unique identifier
+                        name:
+                          type: string
+                          description: Friendly name
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      description: Adds a new garden bed to the system. Garden bed metadata only.
+      operationId: add-bed
+      tags:
+        - Garden Beds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GardenBed'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /beds/{bedId}:
+    parameters:
+      - $ref: '#/components/parameters/BedId'
+    get:
+      description: Gets details of a specific bed by name like bed metadata and currently planted plants.
+      operationId: get-bed
+      tags:
+        - Garden Beds
+      responses:
+        '200':
+          description: All bed details are returned
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GardenBed'
+                  - $ref: '#/components/schemas/SystemAddedFields'
+                  - type: object
+                    required:
+                      - plants
+                    properties:
+                      plants:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Plant'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      description: Updates existing garden bed metadata
+      operationId: update-bed
+      tags:
+        - Garden Beds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GardenBed'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /beds/{bedId}/plants:
+    parameters:
+      - $ref: '#/components/parameters/BedId'
+    get:
+      description: Lists all plants for a specific bed.
+      operationId: list-bed-plants
+      tags:
+        - Plants
+      responses:
+        '200':
+          description: The list of plants is returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - plants
+                properties:
+                  plants:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Plant'
+                        - $ref: '#/components/schemas/SystemAddedFields'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      description: Adds a plant to a specific bed.
+      operationId: add-plants-to-bed
+      tags:
+        - Plants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Plant'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /beds/{bedId}/plants/{plant}:
+    parameters:
+      - $ref: '#/components/parameters/BedId'
+      - name: plant
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      description: Removes a plant from a specific bed.
+      operationId: remove-plant-from-bed
+      tags:
+        - Plants
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /beds/{bedId}/harvests:
+    parameters:
+      - $ref: '#/components/parameters/BedId'
+    get:
+      description: Lists all harvest records for a specific bed.
+      operationId: list-bed-harvests
+      tags:
+        - Harvests
+      responses:
+        '200':
+          description: The list of harvests is returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - harvests
+                properties:
+                  harvests:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Harvest'
+                        - $ref: '#/components/schemas/SystemAddedFields'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      description: Logs harvest information for a specific bed.
+      operationId: log-harvest
+      tags:
+        - Harvests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Harvest'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /beds/{bedId}/observations:
+    parameters:
+      - $ref: '#/components/parameters/BedId'
+    get:
+      description: Lists all observations for a specific bed.
+      operationId: list-bed-observations
+      tags:
+        - Observations
+      responses:
+        '200':
+          description: The list of observations is returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - observations
+                properties:
+                  observations:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Observation'
+                        - $ref: '#/components/schemas/SystemAddedFields'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      description: Logs an observation for a specific bed.
+      operationId: log-observation
+      tags:
+        - Observations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Observation'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /harvests:
+    get:
+      description: Lists all harvest records across the entire garden.
+      operationId: list-all-harvests
+      tags:
+        - Harvests
+      responses:
+        '200':
+          description: The list of harvests is returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - harvests
+                properties:
+                  harvests:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Harvest'
+                        - $ref: '#/components/schemas/SystemAddedFields'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /observations:
+    get:
+      description: Lists all observations recorded across all garden beds.
+      operationId: list-all-observations
+      tags:
+        - Observations
+      responses:
+        '200':
+          description: The list of observations is returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - observations
+                properties:
+                  observations:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Observation'
+                        - $ref: '#/components/schemas/SystemAddedFields'
+        '500':
+          $ref: '#/components/responses/InternalServerError'

@@ -3,6 +3,7 @@ import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import { ChatOpenAI } from "@langchain/openai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { getChatHistory, updateChatHistory } from "./helpers/momento.mjs";
 
 const ddb = new DynamoDBClient();
 let client; // MCP client
@@ -10,13 +11,13 @@ let agent; // LangChain agent
 
 export const handler = async (event) => {
   try {
-    const { message } = JSON.parse(event.body);
+    const messages = await getChatHistory(event);
 
     await setupAgent();
-    const response = await agent.invoke({
-      messages: [{ role: "user", content: message }],
-    });
+    const response = await agent.invoke({ messages });
+    console.log(response);
     const aiAnswer = response.messages.filter(m => m.content).pop();
+    await updateChatHistory(event, aiAnswer);
 
     return {
       statusCode: 200,
