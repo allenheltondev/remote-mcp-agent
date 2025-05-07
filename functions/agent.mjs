@@ -16,10 +16,11 @@ export const handler = async (event) => {
     const response = await agent.invoke({
       messages: [{ role: "user", content: message }],
     });
+    const aiAnswer = response.messages.filter(m => m.content).pop();
 
     return {
       statusCode: 200,
-      body: JSON.stringify(response),
+      body: JSON.stringify({ message: aiAnswer?.content || "No response" })
     };
   } catch (err) {
     console.error(err);

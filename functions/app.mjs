@@ -81,6 +81,17 @@ app.get('/beds', async (req, res) => {
   }
 });
 
+app.post('/beds', async (req, res) => {
+  try {
+    const bed = req.body;
+    const newBed = await addGardenBed(bed);
+    res.status(201).json({ id: newBed.id });
+  } catch (err) {
+    console.error('Error adding bed:', err);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
+});
+
 app.put('/beds/:name', async (req, res) => {
   try {
     const name = decodeURIComponent(req.params.name);
@@ -91,17 +102,6 @@ app.put('/beds/:name', async (req, res) => {
     res.status(204).send();
   } catch (err) {
     console.error('Error updating bed:', err);
-    res.status(500).json({ message: 'Something went wrong' });
-  }
-});
-
-app.post('/beds', async (req, res) => {
-  try {
-    const bed = req.body;
-    const newBed = await addGardenBed(bed);
-    res.status(201).json({ id: newBed.id });
-  } catch (err) {
-    console.error('Error adding bed:', err);
     res.status(500).json({ message: 'Something went wrong' });
   }
 });

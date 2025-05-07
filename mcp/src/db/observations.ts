@@ -14,9 +14,9 @@ type Observation = {
 export async function addObservation(bedId: string, observation: any): Promise<Observation> {
   const sql = getDbClient();
   const id = uuidv4();
-  await sql`INSERT INTO observations (id, bed_id, note, moisture, pests, health)
-     VALUES (${id}, ${bedId}, ${observation.note}, ${observation.moisture}, ${observation.pests}, ${observation.health})`;
-  return { id, bedId, ...observation, timestamp: new Date().toISOString() };
+  await sql`INSERT INTO observations (id, bed_id, note, moisture, pests, health, timestamp)
+     VALUES (${id}, ${bedId}, ${observation.note}, ${observation.moisture}, ${observation.pests}, ${observation.health}, ${observation.observationDate})`;
+  return { id, bedId, ...observation };
 }
 
 export async function getObservationsByBedId(bedId: string): Promise<Observation[]> {

@@ -61,6 +61,7 @@ export function registerTools(server: McpServer) {
   server.tool("log-observation", "Logs an observation for a specific bed.",
     {
       name: z.string().describe("Name of the garden bed"),
+      observationDate: z.string().describe("Date of the observation"),
       note: z.string().describe("Freeform note about the observation").optional(),
       moisture: z.string().describe("Moisture level").optional(),
       pests: z.string().describe("Observed pests").optional(),
