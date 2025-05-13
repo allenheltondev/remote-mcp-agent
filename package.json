@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "allenheltondev",
   "license": "ISC",
   "devDependencies": {
     "@aws-sdk/client-bedrock-agent-runtime": "^3.787.0",
@@ -19,6 +20,8 @@
     "@langchain/langgraph": "^0.2.65",
     "@langchain/mcp-adapters": "^0.4.2",
     "@langchain/openai": "^0.5.6",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "middy-mcp": "^0.1.1",
