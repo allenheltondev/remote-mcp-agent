@@ -1,0 +1,18 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "garden-agent",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-03-10",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"kv_namespaces": [],
+	"observability": {
+		"enabled": true
+	},
+	"secrets_store_secrets": [{
+		"binding": "MOMENTO_API_KEY",
+		"store_id": "a19d26d09b5649928cba684129ee8ca7",
+		"secret_name": "MOMENTO_API_KEY"
+	}]
+}

@@ -1,0 +1,22 @@
+{
+	"name": "garden-agent",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"test": "vitest",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.8.19",
+		"typescript": "^5.5.2",
+		"vitest": "~3.0.7",
+		"wrangler": "^4.15.1"
+	},
+	"dependencies": {
+		"@gomomento/sdk-web": "^1.111.0",
+		"hono": "^4.7.9"
+	}
+}

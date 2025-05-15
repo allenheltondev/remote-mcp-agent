@@ -1,13 +1,12 @@
-import { serve } from '@hono/node-server';
-import { A2AServer } from '../dist/a2a/server/index.js';
 
-async function* TestAgent({ task, history }) {
+import type { TaskContext } from "../a2a/server/handler";
+export async function* TestAgent({ task, history, userMessage, isCancelled }: TaskContext) {
   const messages = (history ?? [])
     .map((m) => ({
       role: (m.role === "agent" ? "model" : "user"),
       content: m.parts
-        .filter((p) => !!(p).text)
-        .map((p) => ({ text: p.text })),
+        .filter((p: any) => !!(p).text)
+        .map((p: any) => ({ text: p.text })),
     }))
     .filter((m) => m.content.length > 0);
 
@@ -31,7 +30,7 @@ async function* TestAgent({ task, history }) {
     },
   };
 
-  for (let i = 1; i <= 2; i++) {
+  for (let i = 1; i <= 3; i++) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     yield {
       state: "working",
@@ -63,7 +62,7 @@ async function* TestAgent({ task, history }) {
 
 // --- Server Setup ---
 
-const agentCard = {
+export const agentCard = {
   name: "Test Agent",
   description:
     "An agent that provides progress updates once per second for 5 seconds.",
@@ -94,12 +93,3 @@ const agentCard = {
     },
   ],
 };
-
-const server = new A2AServer(TestAgent, {
-  card: agentCard,
-});
-
-const app = server.app();
-serve({ fetch: app.fetch, port: 8787});
-console.log("[TestAgent] Server started on http://localhost:8787");
-console.log("[TestAgent] Press Ctrl+C to stop the server");
