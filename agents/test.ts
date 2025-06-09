@@ -1,14 +1,14 @@
 
-import type { TaskContext } from "../a2a/server/handler";
+import type { TaskContext } from "../a2a/server/handler.js";
 export async function* TestAgent({ task, history, userMessage, isCancelled }: TaskContext) {
   const messages = (history ?? [])
-    .map((m) => ({
+    .map((m: any) => ({
       role: (m.role === "agent" ? "model" : "user"),
       content: m.parts
         .filter((p: any) => !!(p).text)
         .map((p: any) => ({ text: p.text })),
     }))
-    .filter((m) => m.content.length > 0);
+    .filter((m: any) => m.content.length > 0);
 
   if (messages.length === 0) {
     console.warn(`[TestAgent] No history/messages found for task ${task.id}`);

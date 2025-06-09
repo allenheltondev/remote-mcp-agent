@@ -10,9 +10,16 @@
 	"observability": {
 		"enabled": true
 	},
-	"secrets_store_secrets": [{
-		"binding": "MOMENTO_API_KEY",
-		"store_id": "a19d26d09b5649928cba684129ee8ca7",
-		"secret_name": "MOMENTO_API_KEY"
-	}]
+	"secrets_store_secrets": [
+		{
+			"binding": "MOMENTO_API_KEY",
+			"store_id": "a19d26d09b5649928cba684129ee8ca7",
+			"secret_name": "MOMENTO_API_KEY"
+		},
+		{
+			"binding": "ANTHROPIC_KEY",
+			"store_id": "a19d26d09b5649928cba684129ee8ca7",
+			"secret_name": "ANTHROPIC_KEY"
+		}
+	]
 }

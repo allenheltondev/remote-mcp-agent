@@ -12,7 +12,7 @@ export type { TaskHandler, TaskContext, TaskYieldUpdate } from "./handler.js";
 
 // Export store-related types and implementations
 export type { TaskStore } from "./store.js";
-export { InMemoryTaskStore, FileStore } from "./store.js";
+export { InMemoryTaskStore, MomentoTaskStore } from "./store.js";
 
 // Export the custom error class
 export { A2AError } from "./error.js";

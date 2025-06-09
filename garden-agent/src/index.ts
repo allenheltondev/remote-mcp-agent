@@ -1,19 +1,21 @@
 import { A2AServer } from '../../a2a/server/server';
-import { TestAgent, agentCard } from '../../agents/test.js';
+import { createAgent, agentCard } from '../../agents/garden.js';
 import { MomentoTaskStore } from '../../a2a/server/store';
-import type { TaskHandler } from '../../a2a/server/handler';
 
 type Env = {
-  MOMENTO_API_KEY: { get(): Promise<string> };
+  MOMENTO_API_KEY: { get(): Promise<string>; };
+  ANTHROPIC_KEY: { get(): Promise<string>; };
 };
 
 class A2AWorker {
   private server!: A2AServer;
 
   async init(env: Env) {
-    const apiKey = await env.MOMENTO_API_KEY.get();
-    const store = new MomentoTaskStore('chatgpt', apiKey);
-    this.server = new A2AServer(TestAgent as TaskHandler, {
+    const momentoApiKey = await env.MOMENTO_API_KEY.get();
+    const store = new MomentoTaskStore('chatgpt', momentoApiKey);
+    const anthropicApiKey = await env.ANTHROPIC_KEY.get();
+    const agentHandler = createAgent({ apiKey: anthropicApiKey })
+    this.server = new A2AServer(agentHandler, {
       card: agentCard,
       taskStore: store,
     });

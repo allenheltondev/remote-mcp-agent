@@ -17,5 +17,5 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["a2a"]
+  "include": ["a2a", "agents"]
 }

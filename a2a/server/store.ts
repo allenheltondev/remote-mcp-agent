@@ -1,5 +1,4 @@
 import * as schema from "../schema.js";
-import { A2AError } from "./error.js";
 
 // Helper type for the simplified store
 export interface TaskAndHistory {
@@ -73,9 +72,9 @@ export class MomentoTaskStore implements TaskStore {
   }
 
   async load(taskId: string): Promise<TaskAndHistory | null> {
-    const response = await fetch(`${this.baseUrl}/cache/${this.cacheName}?key=${encodeURIComponent(taskId)}&token=${this.apiKey}`);
+    const response: Response = await fetch(`${this.baseUrl}/cache/${this.cacheName}?key=${encodeURIComponent(taskId)}&token=${this.apiKey}`);
     if (response.ok) {
-      const data = await response.json();
+      const data = await response.json() as any;
       if (data.value) {
         return JSON.parse(data.value) as TaskAndHistory;
       }
