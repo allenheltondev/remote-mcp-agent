@@ -1,24 +1,54 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { TaskContext, TaskHandler, TaskYieldUpdate } from "../a2a/server/handler.js";
-import type { Message } from "../a2a/schema.js";
+import { v4 as uuidv4 } from 'uuid';
+import { AgentExecutor, IExecutionEventBus, RequestContext, schema } from '../a2a/server/index.js';
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages/messages.mjs";
+import { buildUpdate } from "../a2a/server/utils.js";
 
-export function createAgent(opts: { apiKey: string; }): TaskHandler {
-  const claude = new Anthropic({ apiKey: opts.apiKey });
+export class GardenAgent implements AgentExecutor {
+  private claude: Anthropic;
+  constructor(apiKey: string) {
+    this.claude = new Anthropic({ apiKey });
+  }
 
-  const agent: TaskHandler = async function* GardenAgent(
-    { history, userMessage }: TaskContext,
-  ): AsyncGenerator<TaskYieldUpdate, void, unknown> {
+  async execute(requestContext: RequestContext, eventBus: IExecutionEventBus): Promise<void> {
+    const userMessage = requestContext.userMessage;
+    const existingTask = requestContext.task;
+
+    const taskId = existingTask?.id || uuidv4();
+    const contextId = userMessage.contextId || existingTask?.contextId || uuidv4();
+
+    if (!existingTask) {
+      const initialTask: schema.Task = {
+        kind: 'task',
+        id: taskId,
+        contextId: contextId,
+        status: {
+          state: schema.TaskState.Submitted,
+          timestamp: new Date().toISOString(),
+        },
+        history: [userMessage],
+        metadata: userMessage.metadata,
+        artifacts: []
+      };
+      await eventBus.publish(initialTask);
+    }
+
+    // 2. Publish "working" status update
+    const workingUpdate = buildUpdate(taskId, contextId, schema.TaskState.Working, 'Processing message', false);
+    await eventBus.publish(workingUpdate);
 
     try {
-      const messages: BetaMessageParam[] = (history ?? [])
+      const messages: BetaMessageParam[] = (existingTask?.history ?? [])
         .map(mapMessageToAnthropicFormat)
         .filter(m => m.content.length > 0);
+      const incomingMessage = mapMessageToAnthropicFormat(userMessage);
+      messages.push(incomingMessage);
+      console.log(messages);
 
-      const response = await claude.beta.messages.create({
+      const response = await this.claude.beta.messages.create({
         model: "claude-3-5-sonnet-latest",
         max_tokens: 1000,
-        messages: [...messages, mapMessageToAnthropicFormat(userMessage)],
+        messages,
         mcp_servers: [
           {
             type: "url",
@@ -37,40 +67,34 @@ export function createAgent(opts: { apiKey: string; }): TaskHandler {
             .map((b: any) => b.text)
             .join("\n");
 
-      yield {
-        state: "completed",
-        message: {
-          role: "agent",
-          parts: [{ type: "text", text: assistantText }],
-        },
-      };
-    } catch (err) {
-      console.error(err);
-      throw err;
+      const completedUpdate = buildUpdate(taskId, contextId, schema.TaskState.Completed, assistantText, true);
+      eventBus.publish(completedUpdate);
+    } catch (err: any) {
+      console.error(`[GardenAgent] Error processing task ${taskId}:`, err);
+      const errorUpdate = buildUpdate(taskId, contextId, schema.TaskState.Failed, `Agent error: ${err.message}`, true);
+      eventBus.publish(errorUpdate);
     }
-  };
-
-  return agent;
+  }
 }
 
-function mapMessageToAnthropicFormat(m: Message): BetaMessageParam {
+function mapMessageToAnthropicFormat(m: schema.Message): BetaMessageParam {
   return {
     role: m.role === "agent" ? "assistant" : "user",
     content: m.parts
-      .filter((p: any) => p.text)
+      .filter((p): p is schema.TextPart => p.kind === 'text' && !!(p as schema.TextPart).text)
       .map((p: any) => p.text)
       .join("\n"),
   };
 }
 
-
-export const agentCard = {
+export const agentCard: schema.AgentCard = {
   name: "Garden Agent",
   description:
     "An agent that tracks and updates garden information",
   url: "https://garden-agent.allenheltondev.workers.dev/",
   provider: {
     organization: "allenheltondev",
+    url: 'https://readysetcloud.io'
   },
   version: "0.0.1",
   capabilities: {
@@ -78,20 +102,53 @@ export const agentCard = {
     pushNotifications: false,
     stateTransitionHistory: true,
   },
-  authentication: null,
   defaultInputModes: ["text"],
   defaultOutputModes: ["text"],
   skills: [
     {
-      id: "progress_updates",
-      name: "Progress Updates",
-      description:
-        "Yields periodic progress messages to demonstrate streaming behavior.",
-      tags: ["progress", "status", "streaming"],
+      id: "manage_beds",
+      name: "Manage beds",
+      description: "List, add, remove, or edit garden beds",
+      tags: ["garden bed", "crud"],
       examples: [
-        "Show me progress over time.",
-        "Simulate a multi-step process with updates.",
+        "What garden beds do I have?",
+        "Add a new garden bed called 'melon patch' that is 4x8 ft with full sun",
+        "Remove the melon patch bed"
       ],
     },
-  ],
+    {
+      id: "seed_catalog",
+      name: "Seed catalog",
+      description: "CRUD seeds the caller owns",
+      tags: ["seeds", "crud"],
+      examples: [
+        "What seeds do I have?",
+        "Add these seeds to my catalog {comma separated list}",
+        "I used 20 carrot seeds"
+      ]
+    },
+    {
+      id: "manage_plants",
+      name: "Manage plants",
+      description: "CRUD plants in garden beds",
+      tags: ["plants", "crud"],
+      examples: [
+        "Add yellow squash to the triangle garden bed",
+        "Add an observation on the melon patch that some watermelons look dry",
+        "List all the observations on my melon patch bed",
+        "What should I plant in the melon patch that would go well with what I already have using the seeds I own"
+      ]
+    },
+    {
+      id: "harvest_manager",
+      name: "Harvest manager",
+      description: "Track harvests for garden beds",
+      tags: ["harvest", "garden bed"],
+      examples: [
+        "I harvested 10 tomatoes from the salsa garden beds",
+        "What has been my total yield from the garden?",
+        "How many zucchinis have I harvested this year?"
+      ]
+    }
+  ]
 };

@@ -1,3 +1,6 @@
+import { schema } from "./index.js";
+import { v4 as uuidv4 } from 'uuid';
+
 /**
  * Generates a timestamp in ISO 8601 format.
  * @returns The current timestamp as a string.
@@ -35,4 +38,27 @@ export function isArtifactUpdate(
 ): update is import("../schema.js").Artifact {
   // Check if it has 'parts'
   return isObject(update) && "parts" in update;
+}
+
+export function buildUpdate(taskId: string, contextId: string, state: schema.TaskState, message: string, isFinal: boolean) {
+  const update: schema.TaskStatusUpdateEvent = {
+    kind: 'status-update',
+    taskId: taskId,
+    contextId: contextId,
+    status: {
+      state,
+      message: {
+        kind: 'message',
+        role: 'agent',
+        messageId: uuidv4(),
+        parts: [{ kind: 'text', text: message }],
+        taskId: taskId,
+        contextId: contextId,
+      },
+      timestamp: new Date().toISOString(),
+    },
+    final: isFinal
+  };
+
+  return update;
 }
