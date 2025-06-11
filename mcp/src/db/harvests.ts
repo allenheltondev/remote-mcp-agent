@@ -1,4 +1,4 @@
-import { getDbClient} from './client.js';
+import { getDbClient} from '../../shared/db_client.js';
 import { v4 as uuidv4 } from 'uuid';
 
 type Harvest = {

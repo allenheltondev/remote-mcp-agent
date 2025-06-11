@@ -18,5 +18,5 @@
 			"@cloudflare/workers-types/2023-07-01"
 		]
 	},
-	"include": ["worker-configuration.d.ts", "src/**/*.ts"]
+	"include": ["worker-configuration.d.ts", "src/**/*.ts", "shared/db_client.ts"]
 }

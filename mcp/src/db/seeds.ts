@@ -1,4 +1,4 @@
-import { getDbClient } from './client.js';
+import { getDbClient } from '../../shared/db_client.js';
 
 export type Seed = {
   id?: string;

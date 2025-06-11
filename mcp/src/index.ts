@@ -1,6 +1,6 @@
 import { McpAgent } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { initialize as initDb } from './db/client';
+import { initialize as initDb } from '../shared/db_client';
 import { registerTools } from './tools';
 
 type Env = {
