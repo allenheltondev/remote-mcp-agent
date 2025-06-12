@@ -1,0 +1,57 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "animal",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-06-12",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"observability": {
+		"enabled": true
+	},
+	"migrations": [
+		{
+			"new_sqlite_classes": [
+				"LocationAgent",
+				"ProductionAgent",
+				"AnimalRegistryAgent",
+				"AnimalCareAgent",
+				"MovementAndEventsAgent"
+			],
+			"tag": "v1"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "LocationAgent",
+				"name": "LOCATION_MCP_OBJECT"
+			},
+			{
+				"class_name": "ProductionAgent",
+				"name": "PRODUCTION_MCP_OBJECT"
+			},
+			{
+				"class_name": "AnimalRegistryAgent",
+				"name": "ANIMAL_REGISTRY_MCP_OBJECT"
+			},
+			{
+				"class_name": "AnimalCareAgent",
+				"name": "ANIMAL_CARE_MCP_OBJECT"
+			},
+			{
+				"class_name": "MovementAndEventsAgent",
+				"name": "MOVEMENT_AND_EVENTS_MCP_OBJECT"
+			}
+		]
+	},
+	"secrets_store_secrets": [{
+		"binding": "NEON_CONNECTION_STRING",
+		"store_id": "a19d26d09b5649928cba684129ee8ca7",
+		"secret_name": "NEON_CONNECTION_STRING_ANIMALS"
+	}]
+}
