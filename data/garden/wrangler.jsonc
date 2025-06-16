@@ -1,0 +1,59 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "garden",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-03-10",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"migrations": [
+		{
+			"new_sqlite_classes": [
+				"MyMCP"
+			],
+			"tag": "v1"
+		},
+		{
+			"deleted_classes": ["MyMCP"],
+			"tag": "v2"
+		},
+		{
+			"new_sqlite_classes": [
+				"GardenBedAgent",
+				"GardenRecordsAgent",
+				"GardenPlantsAgent",
+				"SeedAgent"
+			],
+			"tag": "v3"
+		},
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "GardenBedAgent",
+				"name": "GARDEN_BED_MCP_OBJECT"
+			},
+			{
+				"class_name": "GardenRecordsAgent",
+				"name": "GARDEN_RECORDS_MCP_OBJECT"
+			},
+			{
+				"class_name": "GardenPlantsAgent",
+				"name": "PLANTS_MCP_OBJECT"
+			},
+			{
+				"class_name": "SeedAgent",
+				"name": "SEED_MCP_OBJECT"
+			}
+		]
+	},
+	"kv_namespaces": [],
+	"observability": {
+		"enabled": true
+	},
+	"secrets_store_secrets": [{
+		"binding": "NEON_CONNECTION_STRING",
+		"store_id": "a19d26d09b5649928cba684129ee8ca7",
+		"secret_name": "NEON_CONNECTION_STRING"
+	}]
+}

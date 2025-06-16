@@ -63,7 +63,6 @@ export class MomentoRequestHandler implements A2ARequestHandler {
             }
         }
 
-        // Ensure contextId is present
         const messageForContext = { ...incomingMessage };
         if (!messageForContext.contextId) {
             messageForContext.contextId = task?.contextId || uuidv4();
@@ -91,12 +90,10 @@ export class MomentoRequestHandler implements A2ARequestHandler {
 
         // Instantiate ResultManager before creating RequestContext
         const resultManager = new ResultManager(this.taskStore);
-        resultManager.setContext(incomingMessage); // Set context for ResultManager
+        resultManager.setContext(incomingMessage);
 
         const requestContext = await this._createRequestContext(incomingMessage, false, resultManager);
-        // Use the (potentially updated) contextId from requestContext
         const finalMessageForAgent = requestContext.userMessage;
-
 
         const eventBus = this.eventBusManager.createOrGetByMessageId(finalMessageForAgent.messageId, finalMessageForAgent.contextId!);
         const eventQueue = new ExecutionEventQueue(eventBus);
@@ -104,10 +101,9 @@ export class MomentoRequestHandler implements A2ARequestHandler {
         // Start agent execution (non-blocking)
         this.agentExecutor.execute(requestContext, eventBus).catch(err => {
             console.error(`Agent execution failed for message ${finalMessageForAgent.messageId}:`, err);
-            // Publish a synthetic error event if needed, or handle error reporting
-            // For example, create a Task with a failed status
+            // Publish a synthetic error event
             const errorTask: Task = {
-                id: requestContext.task?.id || uuidv4(), // Use existing task ID or generate new
+                id: requestContext.task?.id || uuidv4(),
                 contextId: finalMessageForAgent.contextId!,
                 status: {
                     state: TaskState.Failed,
@@ -124,7 +120,7 @@ export class MomentoRequestHandler implements A2ARequestHandler {
                 history: requestContext.task?.history ? [...requestContext.task.history] : [],
                 kind: "task",
             };
-            if (finalMessageForAgent) { // Add incoming message to history
+            if (finalMessageForAgent) {
                 if (!errorTask.history?.find(m => m.messageId === finalMessageForAgent.messageId)) {
                     errorTask.history?.push(finalMessageForAgent);
                 }
@@ -290,13 +286,12 @@ export class MomentoRequestHandler implements A2ARequestHandler {
             // Notify active execution if any
             const eventBus = this.eventBusManager.getByTaskId(params.id);
             if (eventBus) {
-                // This should be captured by ResultManager.
                 eventBus.publish({
                     kind: 'status-update',
                     taskId: task.id,
                     contextId: task.contextId,
                     status: task.status,
-                    final: true, // Cancellation is a final state for this execution path
+                    final: true,
                 } as TaskStatusUpdateEvent);
             }
         }
@@ -337,15 +332,7 @@ export class MomentoRequestHandler implements A2ARequestHandler {
         return { taskId: params.id, pushNotificationConfig: config };
     }
 
-    async *resubscribe(
-        params: TaskIdParams
-    ): AsyncGenerator<
-        | Task // Initial task state
-        | TaskStatusUpdateEvent
-        | TaskArtifactUpdateEvent,
-        void,
-        undefined
-    > {
+    async *resubscribe(params: TaskIdParams): AsyncGenerator<Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent, void, undefined> {
         if (!this.agentCard.capabilities.streaming) {
             throw A2AError.unsupportedOperation("Streaming (and thus resubscription) is not supported.");
         }
