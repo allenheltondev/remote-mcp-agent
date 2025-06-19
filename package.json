@@ -11,8 +11,13 @@
   "license": "ISC",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",
+    "@openai/agents": "^0.0.8",
     "cors": "^2.8.5",
     "hono": "^4.7.9",
+    "uuid": "^11.1.0",
     "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@types/events": "^3.0.3"
   }
 }

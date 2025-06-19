@@ -1,38 +1,73 @@
-# Inline Agents Worker Configuration
+# Remote MCP Agent
 
-This repository contains a simple Lambda function setup using LangChain to dynamically create an AI agent that consumes remote MCP servers.
+This repository implements a Model Context Protocol (MCP) agent that can be deployed as a remote service. The agent architecture is designed to work with Cloudflare Workers and integrates with various AI models and services.
 
-## Remote MCP Server
+## Project Structure
 
-The code for the MCP server is contained in the [mcp folder](/mcp). This server uses Cloudflare for hosting. **You must have a Cloudflare account to deploy it**.
+The project is organized into several key components:
 
-Once your account is created and logged in, you can run the following commands to deploy the worker into Cloudflare:
+- **garden-agent**: Implementation of the Garden Agent, which handles AI requests and responses
+- **mcp/animal**: Animal-specific MCP implementation
+- **mcp/garden**: Garden-specific MCP implementation
+- **a2a**: Agent-to-Agent communication framework
 
-```bash
-cd mcp
-npm run deploy
+## Key Features
+
+- Integration with Momento for caching and state management
+- Support for various AI models from providers like Meta (Llama), Hugging Face, and others
+- Cloudflare Workers-based deployment
+- R2 storage integration for object storage
+- WebSocket support for real-time communication
+
+## Technologies Used
+
+- TypeScript
+- Cloudflare Workers
+- Momento Cache
+- Various AI models including:
+  - Meta Llama models (Llama 3, Llama 4 Scout)
+  - Hugging Face models
+  - Stability AI models
+  - BAAI embedding models
+  - And more
+
+## Getting Started
+
+To run this project, you'll need:
+
+1. Cloudflare Workers account
+2. Momento API key
+3. Anthropic API key
+
+## Environment Variables
+
+The following environment variables are required:
+
+- `MOMENTO_API_KEY`: API key for Momento cache
+- `ANTHROPIC_KEY`: API key for Anthropic AI services
+
+## Deployment
+
+The agent is designed to be deployed as a Cloudflare Worker. The main entry point is in `garden-agent/src/index.ts`.
+
+## Usage
+
+The agent exposes an HTTP endpoint that can be called to interact with the MCP agent. The agent handles requests through the A2A (Agent-to-Agent) server implementation.
+
+```typescript
+// Example of how the agent is initialized
+const agentExecutor = new GardenAgent(anthropicApiKey);
+const requestHandler = new MomentoRequestHandler(
+  agentCard,
+  agentExecutor,
+  {
+    cacheName: 'mcp',
+    momentoApiKey,
+    waitForAgentOnTaskCancellation: true,
+  },
+);
 ```
 
-## Lambda functions
+## License
 
-This solution also deploys four Lambda functions into AWS for agent support using SAM. To deploy the resources into your AWS account you can use the following commands:
-
-```bash
-sam build
-sam deploy --guided
-```
-
-This will walk you through the deployment. Once deployed, you will have access to a public API that allows you to configure MCP servers for the agent to consume.
-
-### AI Agent
-
-The [AI agent](/functions/agent.mjs) uses LangChainjs to create an inline agent and give it the configured MCP servers. It uses OpenAI as the LLM to perform the tasks.
-
-## Endpoints
-
-The base url for your deployment is an output of the stack. You can prepend that to the following endpoints:
-
-`POST /agent` - executes the agent and provides it a prompt passed in from the `message` body variable
-`GET /servers` - returns an html page allowing you to configure MCP servers for your agent to consume (only SSE/remote servers are supported)
-`POST /servers` - adds or updates a remote MCP server for your agent. This is called via the html page
-`DELETE /servers/{name}` - removes a remote MCP server from your agent configuration
+[Add license information here]
