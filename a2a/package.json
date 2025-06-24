@@ -1,5 +1,5 @@
 {
-	"name": "garden-agent",
+	"name": "a2a",
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
@@ -12,13 +12,10 @@
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.19",
 		"typescript": "^5.5.2",
-		"vitest": "~3.0.7",
-		"wrangler": "^4.20.5"
+		"vitest": "~3.2.0",
+		"wrangler": "^4.21.0"
 	},
 	"dependencies": {
-		"@anthropic-ai/sdk": "^0.52.0",
-		"@gomomento/sdk-web": "^1.111.0",
-		"hono": "^4.7.9",
-		"momento-a2a-agent": "^1.6.0"
+		"momento-a2a-agent": "^1.14.0"
 	}
 }

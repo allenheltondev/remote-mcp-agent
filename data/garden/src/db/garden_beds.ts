@@ -25,7 +25,7 @@ export async function addGardenBed(params: any): Promise<GardenBed> {
 
 export async function getGardenBedByName(name: string, includePlants: boolean = false): Promise<GardenBed | string> {
   const sql = getDbClient();
-  const result = await sql`SELECT * FROM garden_beds WHERE name = ${name}`;
+  const result = await sql`SELECT * FROM garden_beds WHERE name ILIKE ${name}`;
   const rows = result as GardenBed[];
   if (rows.length === 0) return 'Garden bed not found';
   const bed: GardenBed = rows[0];

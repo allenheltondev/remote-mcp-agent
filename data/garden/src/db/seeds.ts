@@ -64,7 +64,7 @@ export async function listSeeds(includeEmpty: boolean): Promise<Seed[]> {
 
 export async function getSeedDetail(seedName: string): Promise<Seed | string> {
   const sql = getDbClient();
-  const result = await sql`SELECT * FROM seeds WHERE name = ${seedName}` as Seed[];
+  const result = await sql`SELECT * FROM seeds WHERE name ILIKE ${seedName}` as Seed[];
   if(result.length == 0) return 'Seed not found';
 
   return result[0] as Seed;

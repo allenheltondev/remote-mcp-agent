@@ -22,7 +22,7 @@ export async function addAnimals(animals: Omit<Animal, 'id'>[]): Promise<void> {
 
 export async function getAnimalByName(name: string): Promise<Animal | null> {
   const sql = getDbClient();
-  const result = await sql`SELECT * FROM animals WHERE name = ${name}` as Animal[];
+  const result = await sql`SELECT * FROM animals WHERE name ILIKE ${name}` as Animal[];
   return result[0] || null;
 }
 
@@ -34,7 +34,7 @@ export async function listAnimals(): Promise<Animal[]> {
 
 export async function listAnimalsBySpecies(species: string): Promise<Animal[]> {
   const sql = getDbClient();
-  const result = await sql`SELECT * FROM animals WHERE species = ${species} ORDER BY name`;
+  const result = await sql`SELECT * FROM animals WHERE species ILIKE ${species} ORDER BY name`;
   return result as Animal[];
 }
 

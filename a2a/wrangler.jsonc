@@ -1,0 +1,29 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "a2a",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-06-20",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"observability": {
+		"enabled": true
+	},
+	"secrets_store_secrets": [
+		{
+			"binding": "MOMENTO_API_KEY",
+			"store_id": "a19d26d09b5649928cba684129ee8ca7",
+			"secret_name": "MOMENTO_API_KEY"
+		},
+		{
+			"binding": "OPENAI_API_KEY",
+			"store_id": "a19d26d09b5649928cba684129ee8ca7",
+			"secret_name": "OPENAI_API_KEY"
+		}
+	]
+}
