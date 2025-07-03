@@ -14,10 +14,8 @@ export const handler = async (event) => {
       }
     });
 
-    orchestrator.registerAgents([
-      'https://ai.allenheltondev.workers.dev/agents/ap', 'https://ai.allenheltondev.workers.dev/agents/ar',
-      'https://ai.allenheltondev.workers.dev/agents/gb', 'https://ai.allenheltondev.workers.dev/agents/gr'
-    ]);
+    orchestrator.registerAgents([]); // Add the base urls of your A2A server agents here to make them available to the orchestrator/supervisor agent
+    
     const result = await orchestrator.sendMessage({
       message: body.message,
       contextId: 'allen'
