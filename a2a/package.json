@@ -16,6 +16,6 @@
 		"wrangler": "^4.21.0"
 	},
 	"dependencies": {
-		"momento-a2a-agent": "^1.14.0"
+		"momento-a2a-agent": "^1.15.0"
 	}
 }

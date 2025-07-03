@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Building an A2A Agent
+
+Parameters:
+  MomentoApiKey:
+    Type: String
+    Description: "Momento API key"
+
+Metadata:
+  esbuild-properties: &esbuild-properties
+    Format: esm
+    Minify: true
+    OutExtension:
+      - .js=.mjs
+    Target: es2020
+    Sourcemap: false
+    EntryPoints:
+      - index.mjs
+    Banner:
+      - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+    External:
+      - '@aws-sdk/*'
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
+    Tracing: Active
+    Timeout: 30
+    MemorySize: 1024
+    CodeUri: functions
+    Environment:
+      Variables:
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+
+Resources:
+  A2AAgentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        <<: *esbuild-properties
+        EntryPoints:
+          - agent.mjs
+    Properties:
+      Handler: agent.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action: bedrock:InvokeModel
+              Resource: '*'
+      Environment:
+        Variables:
+          MOMENTO_AUTH_TOKEN: !Ref MomentoApiKey
+      Events:
+        Trigger:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: POST
+
+Outputs:
+  url:
+    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/'

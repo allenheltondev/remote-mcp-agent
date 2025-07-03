@@ -20,7 +20,15 @@ export default {
 				agentLoadingConcurrency: 1
 			});
 			orchestrator.registerAgents([
-				// Add the base urls of your A2A servers here
+				'https://ai.allenheltondev.workers.dev/agents/ac',
+				'https://ai.allenheltondev.workers.dev/agents/ar',
+				'https://ai.allenheltondev.workers.dev/agents/gb',
+				'https://ai.allenheltondev.workers.dev/agents/gr',
+				'https://ai.allenheltondev.workers.dev/agents/fl',
+				'https://ai.allenheltondev.workers.dev/agents/me',
+				'https://ai.allenheltondev.workers.dev/agents/plants',
+				'https://ai.allenheltondev.workers.dev/agents/ap',
+				'https://ai.allenheltondev.workers.dev/agents/sc'
 			]);
 		}
 
